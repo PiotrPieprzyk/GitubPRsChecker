@@ -18,9 +18,9 @@
 # PRS should be passed to the standard output in the following format: PRS
 
 # Parameters
-# -r - repositories to filter PRs. You can pass multiple repositories separated by comas
-# -a - authors to filter PRs. You can pass multiple authors separated by comas
-# -d - number of days after which PR is considered as waiting too long for the review
+# -r - repositories to filter PRs. You can pass multiple repositories separated by comas. Example: "EENCloud/WEB-VMS-WebApp,EENCloud/frontend-gui"
+# -a - authors to filter PRs. You can pass multiple authors separated by comas. Example: "piotrlatala,ArekEvo,aleksander-pisarek,PiotrPieprzyk"
+# -d - number of days after which PR is considered as waiting too long for the review. Example: 2
 
 # Types definitions
 # @typedef {PR[]} PRS
