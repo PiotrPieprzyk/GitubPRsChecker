@@ -9,21 +9,19 @@
 
 # Description:
 # PRS should be filtered by the following conditions:
-# 	- review is required (review:required)
-#   - PR is not closed (use state:open)
-#   - PR is not draft (use draft:false)
-#   - PR is older than 2 days (use created:<YYYY-MM-DDTHH:MM:SSZ)
-#   - PR author is member of the web_1 team (use author:{Username} author:piotrlatala author:ArekEvo author:aleksander-pisarek ):
-#     - PiotrPieprzyk
-#     - piotrlatala
-#     - ArekEvo
-#     - aleksander-pisarek
-#   - PR is from following repositories (use --repo {Repository name}):
-#     - EENCloud/WEB-VMS-WebApp
-#     - EENCloud/WEB-EEWC-Components
-#     - EENCloud/frontend-gui
-#     - EENCloud/WEB-Floor-Plan
-# PRS should be passed to the standard output in the following format:
+# 	- review is required 
+#   - PR is not closed 
+#   - PR is not draft
+#   - PR is older than number of days passed as a parameter
+#   - PR author is one of passed as a parameter
+#   - PR is from repositories passed as a parameter
+# PRS should be passed to the standard output in the following format: PRS
+
+# Parameters
+# -r - repositories to filter PRs. You can pass multiple repositories separated by comas
+# -a - authors to filter PRs. You can pass multiple authors separated by comas
+# -d - number of days after which PR is considered as waiting too long for the review
+
 # Types definitions
 # @typedef {PR[]} PRS
  
@@ -37,48 +35,95 @@
 # @property {string} name - name of the reviewer
 # @property {'User'} type - type of the reviewer
 
-# search parameters
-filter_created="created:<$(date -u -d "2 days ago" +"%Y-%m-%dT%H:%M:%SZ")"
+filter_repositories_default="EENCloud/WEB-VMS-WebApp EENCloud/frontend-gui EENCloud/WEB-EEWC-Components EENCloud/WEB-Floor-Plan"
+
+filter_author_default="piotrlatala ArekEvo aleksander-pisarek PiotrPieprzyk"
+
+filter_days_default=2
+
+# Get parameters
+while getopts "r:a:d:" opt; do
+  case $opt in
+    r) filter_repositories_parameter="$OPTARG";;
+    a) filter_author_parameter="$OPTARG";;
+    d) filter_days_parameter="$OPTARG";;
+    \?) echo "Invalid option -$OPTARG" >&2
+    ;;
+  esac
+done
+
+# repositories in filter_repositories_parameter are split by comas. Replace comas with spaces
+filter_repositories="${filter_repositories_parameter//,/ }"
+if [ -z "$filter_repositories" ]; then
+  filter_repositories="$filter_repositories_default"
+fi
+
+filter_author="${filter_author_parameter//,/ }"
+if [ -z "$filter_author" ]; then
+  filter_author="$filter_author_default"
+fi
+
+filter_days="$filter_days_parameter"
+if [ -z "$filter_days_parameter" ]; then
+  filter_days="$filter_days_default"
+fi
+
+# FETCH RESULTS
+
+# To filter_author items we need to add prefix "author:". Each author is separated by space
+filter_author_mapped=$(echo $filter_author | sed 's/\(\w\+\)/author:\1/g')
+filter_created="created:<$(date -u -d "$filter_days days ago" +"%Y-%m-%dT%H:%M:%SZ")"
 filter_is_not_draft="draft:false"
 filter_is_open="state:open"
 filter_review_required="review:required"
-filter_author="author:piotrlatala author:ArekEvo author:aleksander-pisarek author:PiotrPieprzyk"
-search_query="$filter_created $filter_is_not_draft $filter_is_open $filter_review_required $filter_author"
+search_query="$filter_created $filter_is_not_draft $filter_is_open $filter_review_required $filter_author_mapped"
 
 getWaitingPRsByRepository() {
-  local repo_name=$1
+  local repo_name
+  repo_name=$1
   gh pr list --json title,url,reviewRequests,createdAt --search "$search_query" --repo "$repo_name"
 }
 
-waiting_prs_WebApp=$(getWaitingPRsByRepository "EENCloud/WEB-VMS-WebApp")
-waiting_prs_frontend_gui=$(getWaitingPRsByRepository "EENCloud/frontend-gui")
-waiting_prs_WEB_EEWC_Components=$(getWaitingPRsByRepository "EENCloud/WEB-EEWC-Components")
-waiting_prs_WEB_Floor_Plan=$(getWaitingPRsByRepository "EENCloud/WEB-Floor-Plan")
+prsForRepositories=()
+for repo in $filter_repositories;
+do
+  prsForRepositories+=("$(getWaitingPRsByRepository "$repo")")
+  if [ $? -ne 0 ]; 
+  then
+    echo "Error during fetching PRs for repository: $repo"
+    exit 1
+  fi
+done
 
-# Create one array with all PRs by flatting the arrays
-all_PRS=$(echo "$waiting_prs_WebApp $waiting_prs_frontend_gui $waiting_prs_WEB_EEWC_Components $waiting_prs_WEB_Floor_Plan" | jq -c -s 'flatten(1)')
+# FLAT RESULTS
+prsForRepositoriesFlat=$(echo "${prsForRepositories[@]}" | jq -c '.[]')
 
-# Map PRs to the required format
-mapReviewRequest() {
-  local reviewer=$1
-  local name=$(echo "$reviewer" | jq -r '.login')
-  local type=$(echo "$reviewer" | jq -r '.__typename')
-  echo "{\"name\":\"$name\",\"type\":\"$type\"}"
+# MAP RESULTS
+mapReviewRequestsRule="{
+  name:.login, 
+  type:.__typename
+}"
+
+mapPrRule="{
+  title:.title, 
+  url:.url, 
+  createdAt:.createdAt, 
+  reviewRequests: [
+    .reviewRequests[] | $mapReviewRequestsRule
+  ]
+}"
+
+mapPrs() {
+  echo "$1" | jq -c "$mapPrRule" | jq -s
 }
 
-mapPr() {
-  local PR=$1
-  local title=$(echo "$PR" | jq -r '.title')
-  local url=$(echo "$PR" | jq -r '.url')
-  local createdAt=$(echo "$PR" | jq -r '.createdAt')
-  local reviewRequestsArray=$(echo "$PR" | jq -c '.reviewRequests[]' | while read -r reviewer; do mapReviewRequest "$reviewer"; done)
-  local reviewRequestsJSONArray=$(echo "$reviewRequestsArray" | jq -c -s '.')
-  echo "{\"title\":\"$title\",\"url\":\"$url\",\"createdAt\":\"$createdAt\",\"reviewRequests\":$reviewRequestsJSONArray}"
-}
+prsForRepositoriesMapped=$(mapPrs "${prsForRepositoriesFlat[@]}")
+if [ $? -ne 0 ]; then
+  echo "Error during mapping results"
+  exit 1
+fi
 
-all_PRS_MAPPED=$(echo "${all_PRS[@]}" | jq -c '.[]' | while read -r PR; do mapPr "$PR"; done | jq -c -s '.')
-
-echo "${all_PRS_MAPPED[@]}"
+echo "${prsForRepositoriesMapped[@]}"
 
 
 
