@@ -3,7 +3,8 @@ version: '3.8'
 services:
   development:
     environment:
-      - github_token=${github_token}
+      - CLI_TOKEN=${CLI_TOKEN}
+      - GITHUB_OUTPUT=${GITHUB_OUTPUT}
     build: .
     command: /scripts/main.sh
     

@@ -29,6 +29,6 @@ jobs:
       # Run the service
       - name: Run with docker compose
         env:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          test: ${{ env.test }}
+          CLI_TOKEN: ${{ secrets.CLI_TOKEN }}
+          GITHUB_OUTPUT: ${{ env.GITHUB_OUTPUT }}
         run: docker compose run development
