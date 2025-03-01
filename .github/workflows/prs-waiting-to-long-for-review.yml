@@ -1,33 +1,34 @@
-name: PRs waiting too long for review
+name: Docker Compose Workflow
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
     branches: [ main ]
   # Enable manual trigger
   workflow_dispatch:
 
 jobs:
-  run-script:
+  docker-compose-job:
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      # Set up Docker Compose
-      - name: Set up Docker 
-        uses: hoverkraft-tech/compose-action@v2.0.1
-        with:
-          compose-file: './scripts/prs-waiting-to-long-for-review/docker-compose.yml'
+      # Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      # Set the test environment variable
+      - name: Set test environment variable
+        run: echo "test=test_value" >> $GITHUB_ENV
+      
+      # Build the Docker image
+      - name: Build with docker compose
+        run: docker compose build
+      
+      # Run the service
+      - name: Run with docker compose
         env:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          test: "1234"
-      
-      # Run docker-compose
-      - name: Build image
-        run: docker compose build
-        
-      - name: Run script
-        run: docker compose run
+          test: ${{ env.test }}
+        run: docker compose run development
