@@ -41,14 +41,14 @@ RUN (type -p wget >/dev/null || (apt update && apt-get install wget -y)) \
     && chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
     && apt update \
-    && apt install gh -y
+    && apt install gh -y \
 
-# Get the github token from the file and login
-COPY github-token.txt ./github-token.txt
-RUN gh auth login --with-token < ./github-token.txt
+
+# Install jq
+    && apt install jq -y
 
 # Copy scripts to the container \
-COPY ./scripts/prs-waiting-to-long-for-review /scripts/prs-waiting-to-long-for-review
+COPY . /scripts
 
 # Make the scripts executable
-RUN chmod +x ./scripts/prs-waiting-to-long-for-review/*
+RUN chmod +x ./scripts/*

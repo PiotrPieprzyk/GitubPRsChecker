@@ -1,0 +1,33 @@
+name: PRs waiting too long for review
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # Enable manual trigger
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # Set up Docker Compose
+      - name: Set up Docker 
+        uses: hoverkraft-tech/compose-action@v2.0.1
+        with:
+          compose-file: './scripts/prs-waiting-to-long-for-review/docker-compose.yml'
+        env:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          test: "1234"
+      
+      # Run docker-compose
+      - name: Build image
+        run: docker-compose build
+        
+      - name: Run script
+        run: docker-compose run

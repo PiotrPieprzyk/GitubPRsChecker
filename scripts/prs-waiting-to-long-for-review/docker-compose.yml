@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  development:
+    environment:
+      - github_token=${github_token}
+      - test=${test}
+    build: .
+    command: /scripts/main.sh
+    

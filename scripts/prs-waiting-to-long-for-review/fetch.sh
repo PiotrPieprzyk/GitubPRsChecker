@@ -2,8 +2,6 @@
 
 # Script to fetch PRD that are waiting to long for the review
 
-
-
 # Parameters
 # -r - repositories to filter PRs. You can pass multiple repositories separated by comas. Example: "EENCloud/WEB-VMS-WebApp,EENCloud/frontend-gui"
 # -a - authors to filter PRs. You can pass multiple authors separated by comas. Example: "piotrlatala,ArekEvo,aleksander-pisarek,PiotrPieprzyk"
