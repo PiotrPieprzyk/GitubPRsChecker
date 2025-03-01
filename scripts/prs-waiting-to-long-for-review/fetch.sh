@@ -2,10 +2,12 @@
 
 # Script to fetch PRD that are waiting to long for the review
 
-# Alternatives:
-# You can use https://github.com/search with the following search parameter:
-# - repo:EENCloud/WEB-VMS-WebApp repo:EENCloud/frontend-gui repo:EENCloud/WEB-EEWC-Components repo:EENCloud/WEB-Floor-Plan  type:pr author:PiotrPieprzyk author:piotrlatala author:ArekEvo author:aleksander-pisarek created:<2025-02-24T00:00:00Z draft:false state:open review:required
-# Reference: https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-within-a-users-or-organizations-repositories
+
+
+# Parameters
+# -r - repositories to filter PRs. You can pass multiple repositories separated by comas. Example: "EENCloud/WEB-VMS-WebApp,EENCloud/frontend-gui"
+# -a - authors to filter PRs. You can pass multiple authors separated by comas. Example: "piotrlatala,ArekEvo,aleksander-pisarek,PiotrPieprzyk"
+# -d - number of days after which PR is considered as waiting too long for the review. Example: 2
 
 # Description:
 # PRS should be filtered by the following conditions:
@@ -17,12 +19,8 @@
 #   - PR is from repositories passed as a parameter
 # PRS should be passed to the standard output in the following format: PRS
 
-# Parameters
-# -r - repositories to filter PRs. You can pass multiple repositories separated by comas. Example: "EENCloud/WEB-VMS-WebApp,EENCloud/frontend-gui"
-# -a - authors to filter PRs. You can pass multiple authors separated by comas. Example: "piotrlatala,ArekEvo,aleksander-pisarek,PiotrPieprzyk"
-# -d - number of days after which PR is considered as waiting too long for the review. Example: 2
-
 # Types definitions
+# Types are defined in the JSDoc format
 # @typedef {PR[]} PRS
  
 # @typedef {Object} PR
@@ -35,10 +33,9 @@
 # @property {string} name - name of the reviewer
 # @property {'User'} type - type of the reviewer
 
+# Default values
 filter_repositories_default="EENCloud/WEB-VMS-WebApp EENCloud/frontend-gui EENCloud/WEB-EEWC-Components EENCloud/WEB-Floor-Plan"
-
 filter_author_default="piotrlatala ArekEvo aleksander-pisarek PiotrPieprzyk"
-
 filter_days_default=2
 
 # Get parameters
@@ -52,7 +49,7 @@ while getopts "r:a:d:" opt; do
   esac
 done
 
-# repositories in filter_repositories_parameter are split by comas. Replace comas with spaces
+# Transform parameters
 filter_repositories="${filter_repositories_parameter//,/ }"
 if [ -z "$filter_repositories" ]; then
   filter_repositories="$filter_repositories_default"
@@ -67,8 +64,6 @@ filter_days="$filter_days_parameter"
 if [ -z "$filter_days_parameter" ]; then
   filter_days="$filter_days_default"
 fi
-
-# FETCH RESULTS
 
 # To filter_author items we need to add prefix "author:". Each author is separated by space
 filter_author_mapped=$(echo $filter_author | sed 's/\(\w\+\)/author:\1/g')
@@ -95,10 +90,10 @@ do
   fi
 done
 
-# FLAT RESULTS
+# Flat prs
 prsForRepositoriesFlat=$(echo "${prsForRepositories[@]}" | jq -c '.[]')
 
-# MAP RESULTS
+# Map prs
 mapReviewRequestsRule="{
   name:.login, 
   type:.__typename

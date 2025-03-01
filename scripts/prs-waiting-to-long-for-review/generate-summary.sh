@@ -1,16 +1,15 @@
 #!/bin/bash
 
-# Generate Summary for PRs that are waiting to long for the review
+# Generate Summary for PRS that are waiting to long for the review
 
-# Preconditions:
-# Pass json with PRs info as an standard input
+# Parameters:
+# - standard input - PRS in the JSON format 
 
-# Descriptions:
-#
-#
-#
+# Output:
+# - standard output - summary in the SummaryForPRSWaitingToLongForReview format
 
 # Types definitions
+# Types are defined in the JSDoc format
 # @typedef {PR[]} PRS
  
 # @typedef {Object} PR
@@ -23,7 +22,24 @@
 # @property {string} name - name of the reviewer
 # @property {'User'} type - type of the reviewer
 
-# Read the input from the pipe into the PRS variable
+# SummaryForPRSWaitingToLongForReview format:
+# PR Review Summary:
+
+# ----------
+# Name: PR Title
+# Link: PR URL
+# Waiting time: X days
+# Waiting for:
+# - Reviewer1
+# - Reviewer2
+#
+# ----------
+# ... next PRs
+
+
+# Start of the script
+
+# Get the input 
 PRS=$(cat)
 NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 SUMMARY="PR Review Summary:\n\n"

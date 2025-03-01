@@ -48,10 +48,7 @@ COPY github-token.txt ./github-token.txt
 RUN gh auth login --with-token < ./github-token.txt
 
 # Copy scripts to the container \
-COPY ./scripts /scripts
+COPY ./scripts/prs-waiting-to-long-for-review /scripts/prs-waiting-to-long-for-review
 
 # Make the scripts executable
-RUN chmod +x ./scripts/fetch-prs.sh ./scripts/generate-prs-summary.sh
-
-# Run fetch-prs.sh script and pipe the output to generate-prs-summary.sh
-RUN ./scripts/fetch-prs.sh | ./scripts/generate-prs-summary.sh
+RUN chmod +x ./scripts/prs-waiting-to-long-for-review/*
