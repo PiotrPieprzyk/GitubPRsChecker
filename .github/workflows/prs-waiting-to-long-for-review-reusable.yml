@@ -4,14 +4,17 @@ on:
   workflow_call:
     inputs:
       authors:
+        type: string
         description: 'Authors of the PRs'
         required: true
         default: 'piotrlatala ArekEvo aleksander-pisarek PiotrPieprzyk'
       repositories:
+        type: string
         description: 'Repositories to check'
         required: true
         default: 'EENCloud/WEB-VMS-WebApp EENCloud/frontend-gui EENCloud/WEB-EEWC-Components EENCloud/WEB-Floor-Plan'
       days:
+        type: string
         description: 'Days to wait for review'
         required: true
         default: '2'
