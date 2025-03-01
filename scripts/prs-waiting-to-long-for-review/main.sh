@@ -2,4 +2,4 @@
 
 echo "$CLI_TOKEN" | gh auth login --with-token 
 
-/scripts/fetch.sh | /scripts/generate-summary.sh >> $GITHUB_OUTPUT
+/scripts/fetch.sh | /scripts/generate-summary.sh

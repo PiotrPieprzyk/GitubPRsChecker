@@ -3,8 +3,6 @@ name: Docker Compose Workflow
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -18,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      # Set up Docker Buildx
+      # Set up Docker
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       
@@ -26,9 +24,8 @@ jobs:
       - name: Build with docker compose
         run: docker compose build
       
-      # Run the service
+      # Run the container
       - name: Run with docker compose
         env:
           CLI_TOKEN: ${{ secrets.CLI_TOKEN }}
-          GITHUB_OUTPUT: ${{ env.GITHUB_OUTPUT }}
         run: docker compose run development

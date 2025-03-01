@@ -2,10 +2,10 @@
 
 # Script to fetch PRD that are waiting to long for the review
 
-# Parameters
-# -r - repositories to filter PRs. You can pass multiple repositories separated by comas. Example: "EENCloud/WEB-VMS-WebApp,EENCloud/frontend-gui"
-# -a - authors to filter PRs. You can pass multiple authors separated by comas. Example: "piotrlatala,ArekEvo,aleksander-pisarek,PiotrPieprzyk"
-# -d - number of days after which PR is considered as waiting too long for the review. Example: 2
+# Environmental variables:
+# repositories - repositories to filter PRs. You can pass multiple repositories separated by comas. Example: "EENCloud/WEB-VMS-WebApp EENCloud/frontend-gui"
+# authors - authors to filter PRs. You can pass multiple authors separated by comas. Example: "piotrlatala ArekEvo aleksander-pisarek PiotrPieprzyk"
+# days - number of days after which PR is considered as waiting too long for the review. Example: 2
 
 # Description:
 # PRS should be filtered by the following conditions:
@@ -36,35 +36,29 @@ filter_repositories_default="EENCloud/WEB-VMS-WebApp EENCloud/frontend-gui EENCl
 filter_author_default="piotrlatala ArekEvo aleksander-pisarek PiotrPieprzyk"
 filter_days_default=2
 
-# Get parameters
-while getopts "r:a:d:" opt; do
-  case $opt in
-    r) filter_repositories_parameter="$OPTARG";;
-    a) filter_author_parameter="$OPTARG";;
-    d) filter_days_parameter="$OPTARG";;
-    \?) echo "Invalid option -$OPTARG" >&2
-    ;;
-  esac
-done
-
-# Transform parameters
-filter_repositories="${filter_repositories_parameter//,/ }"
-if [ -z "$filter_repositories" ]; then
+if [ -z "$repositories" ]; 
+then
   filter_repositories="$filter_repositories_default"
+else
+  filter_repositories="$repositories"
 fi
 
-filter_author="${filter_author_parameter//,/ }"
-if [ -z "$filter_author" ]; then
+if [ -z "$authors" ]; 
+then
   filter_author="$filter_author_default"
+else
+  filter_author="$authors"
 fi
 
-filter_days="$filter_days_parameter"
-if [ -z "$filter_days_parameter" ]; then
+if [ -z "$days" ]; 
+then
   filter_days="$filter_days_default"
+else
+  filter_days="$days"
 fi
 
 # To filter_author items we need to add prefix "author:". Each author is separated by space
-filter_author_mapped=$(echo $filter_author | sed 's/\(\w\+\)/author:\1/g')
+filter_author_mapped=$(echo "$filter_author" | sed 's/\(\w\+\)/author:\1/g')
 filter_created="created:<$(date -u -d "$filter_days days ago" +"%Y-%m-%dT%H:%M:%SZ")"
 filter_is_not_draft="draft:false"
 filter_is_open="state:open"

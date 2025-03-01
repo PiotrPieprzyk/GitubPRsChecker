@@ -4,7 +4,9 @@ services:
   development:
     environment:
       - CLI_TOKEN=${CLI_TOKEN}
-      - GITHUB_OUTPUT=${GITHUB_OUTPUT}
+      - authors=${authors}
+      - repositories=${repositories}
+      - days=${days}
     build: .
     command: /scripts/main.sh
     
