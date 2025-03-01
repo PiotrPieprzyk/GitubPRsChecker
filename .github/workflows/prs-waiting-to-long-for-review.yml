@@ -27,7 +27,7 @@ jobs:
       
       # Run docker-compose
       - name: Build image
-        run: docker-compose build
+        run: docker compose build
         
       - name: Run script
-        run: docker-compose run
+        run: docker compose run
