@@ -3,12 +3,16 @@ name: Docker Compose Workflow
 on:
   push:
     branches: [ main ]
-  # Enable manual trigger
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   docker-compose-job:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./scripts/prs-waiting-to-long-for-review
     
     steps:
       - name: Checkout repository
