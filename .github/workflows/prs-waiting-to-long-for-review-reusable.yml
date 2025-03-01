@@ -19,9 +19,9 @@ on:
         required: true
         default: '2'
     secrets:
-      - CLI_TOKEN:
-          description: 'Github token. Read README.md for more information'
-          required: true
+      CLI_TOKEN:
+        description: 'Github token. Read README.md for more information'
+        required: true
 
 jobs:
   prs-waiting-to-long-for-review:
